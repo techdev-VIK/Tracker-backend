@@ -52,6 +52,7 @@ initializeDatabase();
 }
 
 app.post('/leads', async(req, res) => {
+
   try {
     const newLead = await addLead(req.body);
 
@@ -108,6 +109,37 @@ async function updateLead(leadId, dataToUpdate) {
 
 
 app.post('/lead/edit/:id', async(req, res) => {
+  try {
+    const editedLead = await updateLead(req.params.id, req.body);
+
+    if(editedLead){
+      res.status(200).json({message: 'Data updated for lead', editedLead})
+    }else{
+      res.status(404).json({error: 'Failed to update the lead.'})
+    }
+  } catch (error) {
+    res.status(500).json({error: "Failed to update data."})
+  }
+})
+
+
+
+//update the agent for a lead
+
+async function updateLead(leadId, dataToUpdate) {
+  try {
+    const editLead = await TrackerLead.findByIdAndUpdate(leadId, dataToUpdate, {new: true});
+
+    return editLead;
+
+  } catch (error) {
+      console.log(error);
+      throw error;
+  }
+}
+
+
+app.post('/lead/edit/:id/agent/reassign', async(req, res) => {
   try {
     const editedLead = await updateLead(req.params.id, req.body);
 
@@ -300,6 +332,38 @@ app.get("/allTags", async(req, res) => {
       }
   } catch (error) {
       res.status(500).json({error: "Tags not found"})
+  }
+})
+
+
+
+//update a tag
+
+async function updateTag(leadId, tagToUpdate) {
+  try {
+    const newTag = await TrackerLead.findByIdAndUpdate(leadId, {$push: {tags: tagToUpdate}}, {new: true});
+
+    return newTag;
+
+  } catch (error) {
+    console.error(error);
+      throw error;
+  }
+}
+
+
+
+app.put("/lead/:id/tag/addNew", async(req, res) => {
+  try {
+    const newTag = await updateTag(req.params.id, req.body.tag);
+
+    if(newTag){
+      res.status(200).json({message: "New tag added", updatedLead: newTag })
+    }else{
+      res.status(404).json({error: "Failed to add tag."})
+    }
+  } catch (error) {
+    res.status(500).json({error: "Failed to updated Agent"})
   }
 })
 
