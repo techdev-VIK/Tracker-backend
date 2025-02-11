@@ -371,9 +371,13 @@ app.put("/lead/:id/tag/addNew", async(req, res) => {
 // Add a comment
 
 
-async function addComment(commentData) {
+async function addComment(leadId, commentData) {
   try {
-     const newComment = new TrackerComment(commentData);
+    const newComment = new TrackerComment({
+      lead: leadId,                    // Correctly assigning leadId to the 'lead' field
+      author: commentData.author,      // Author ID from the request body
+      commentText: commentData.commentText, // Comment text from the request body
+    });
 
      await newComment.save();
 
@@ -387,7 +391,7 @@ async function addComment(commentData) {
 
 app.post("/lead/:id/comment", async(req, res) => {
   try {
-      const newComment = await addComment(req.body);
+      const newComment = await addComment(req.params.id, req.body);
 
       if(newComment){
         res.json(newComment)
@@ -405,7 +409,7 @@ app.post("/lead/:id/comment", async(req, res) => {
 
 async function readComment(leadId) {
     try {
-        const getComments = await TrackerComment.find({leadId});
+        const getComments = await TrackerComment.find({lead: leadId}).populate("author");
 
         return getComments
     } catch (error) {
