@@ -381,6 +381,8 @@ async function addComment(leadId, commentData) {
 
      await newComment.save();
 
+     newComment.populate('author')
+
      return newComment;
   } catch (error) {
       console.error(error);
