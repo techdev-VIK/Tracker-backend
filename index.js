@@ -93,6 +93,34 @@ app.get('/allLeads', async (req, res) => {
 })
 
 
+async function readByQuery(filter={}) {
+  try {
+    const getLeads = await TrackerLead.find(filter).populate("salesAgent");
+    return getLeads;
+  } catch (error) {
+    console.log(error);
+      throw error;
+  }
+}
+
+
+app.get('/queryLeads', async(req, res) => {
+  try {
+    const  {q} = req.query;
+
+    let filter = {};
+
+    if(q){
+      filter = {name: {$regex: q, $options: "i"}}
+    }
+
+    const leads = await readByQuery(filter);
+    res.json(leads);
+  } catch (error) {
+    res.status(500).json({error: 'Failed to fetch data.'});
+  }
+})
+
 //update the lead
 
 async function updateLead(leadId, dataToUpdate) {
